@@ -19,7 +19,7 @@ from tensorflow.python.ops import array_ops
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 from tensorflow.python.ops import nn_ops
-from tensorflow.python.ops import rnn_cell
+from tensorflow.contrib.rnn.python.ops import core_rnn_cell_impl as rnn_cell
 from tensorflow.python.ops import variable_scope
 from tensorflow.python.framework import tensor_shape
 
@@ -44,7 +44,7 @@ def _step(time, sequence_length, min_sequence_length, max_sequence_length, zero_
   logit.set_shape(logit.get_shape())
   return logit
 
-def attention_RNN(encoder_outputs, 
+def attention_RNN(encoder_outputs,
                   encoder_state,
                   num_decoder_symbols,
                   sequence_length,
@@ -57,20 +57,20 @@ def attention_RNN(encoder_outputs,
     print ('Use the attention RNN model')
     if num_heads < 1:
       raise ValueError("With less than 1 heads, use a non-attention decoder.")
-  
+
     with variable_scope.variable_scope(scope or "attention_RNN"):
       output_size = encoder_outputs[0].get_shape()[1].value
       top_states = [array_ops.reshape(e, [-1, 1, output_size])
                   for e in encoder_outputs]
-      attention_states = array_ops.concat(1, top_states)
+      attention_states = array_ops.concat(axis=1, values=top_states)
       if not attention_states.get_shape()[1:2].is_fully_defined():
         raise ValueError("Shape[1] and [2] of attention_states must be known: %s"
                        % attention_states.get_shape())
-  
+
       batch_size = array_ops.shape(top_states[0])[0]  # Needed for reshaping.
       attn_length = attention_states.get_shape()[1].value
       attn_size = attention_states.get_shape()[2].value
-  
+
       # To calculate W1 * h_t we use a 1-by-1 convolution, need to reshape before.
       hidden = array_ops.reshape(
           attention_states, [-1, attn_length, 1, attn_size])
@@ -83,7 +83,7 @@ def attention_RNN(encoder_outputs,
         hidden_features.append(nn_ops.conv2d(hidden, k, [1, 1, 1, 1], "SAME"))
         v.append(variable_scope.get_variable("AttnV_%d" % a,
                                              [attention_vec_size]))
-  
+
       def attention(query):
         """Put attention masks on hidden using hidden_features and query."""
         attn_weights = []
@@ -103,13 +103,13 @@ def attention_RNN(encoder_outputs,
                 [1, 2])
             ds.append(array_ops.reshape(d, [-1, attn_size]))
         return attn_weights, ds
-  
-      batch_attn_size = array_ops.pack([batch_size, attn_size])
+
+      batch_attn_size = array_ops.stack([batch_size, attn_size])
       attns = [array_ops.zeros(batch_attn_size, dtype=dtype)
                for _ in xrange(num_heads)]
       for a in attns:  # Ensure the second shape of attention vectors is set.
         a.set_shape([None, attn_size])
-  
+
       # loop through the encoder_outputs
       attention_encoder_outputs = list()
       sequence_attention_weights = list()
@@ -122,7 +122,7 @@ def attention_RNN(encoder_outputs,
           attn_weights, ds = attention(initial_state)
         else:
           attn_weights, ds = attention(encoder_outputs[i])
-        output = array_ops.concat(1, [ds[0], encoder_outputs[i]]) # NOTE: here we temporarily assume num_head = 1
+        output = array_ops.concat(axis=1, values=[ds[0], encoder_outputs[i]]) # NOTE: here we temporarily assume num_head = 1
         with variable_scope.variable_scope("AttnRnnOutputProjection"):
           logit = rnn_cell._linear(output, num_decoder_symbols, True)
         attention_encoder_outputs.append(logit) # NOTE: here we temporarily assume num_head = 1
@@ -132,14 +132,14 @@ def attention_RNN(encoder_outputs,
     with variable_scope.variable_scope(scope or "non-attention_RNN"):
       attention_encoder_outputs = list()
       sequence_attention_weights = list()
-      
+
       # copy over logits once out of sequence_length
       if encoder_outputs[0].get_shape().ndims != 1:
         (fixed_batch_size, output_size) = encoder_outputs[0].get_shape().with_rank(2)
       else:
         fixed_batch_size = encoder_outputs[0].get_shape().with_rank_at_least(1)[0]
 
-      if fixed_batch_size.value: 
+      if fixed_batch_size.value:
         batch_size = fixed_batch_size.value
       else:
         batch_size = array_ops.shape(encoder_outputs[0])[0]
@@ -152,7 +152,7 @@ def attention_RNN(encoder_outputs,
             tensor_shape.TensorShape([fixed_batch_size.value, num_decoder_symbols]))
         min_sequence_length = math_ops.reduce_min(sequence_length)
         max_sequence_length = math_ops.reduce_max(sequence_length)
-    
+
       for time, input_ in enumerate(encoder_outputs):
         if time > 0: variable_scope.get_variable_scope().reuse_variables()
         # pylint: disable=cell-var-from-loop
@@ -164,8 +164,8 @@ def attention_RNN(encoder_outputs,
               time, sequence_length, min_sequence_length, max_sequence_length, zero_logit, generate_logit)
         else:
           logit = generate_logit
-        attention_encoder_outputs.append(logit)   
-        
+        attention_encoder_outputs.append(logit)
+
   return attention_encoder_outputs, sequence_attention_weights
 
 
@@ -203,7 +203,7 @@ def sequence_loss_by_example(logits, targets, weights,
         # violates our general scalar strictness policy.
         target = array_ops.reshape(target, [-1])
         crossent = nn_ops.sparse_softmax_cross_entropy_with_logits(
-            logit, target)
+            logits=logit, labels=target)
       else:
         crossent = softmax_loss_function(logit, target)
       log_perp_list.append(crossent * weight)
@@ -248,7 +248,7 @@ def sequence_loss(logits, targets, weights,
     else:
       return cost
 
-  
+
 def generate_sequence_output(num_encoder_symbols,
                        encoder_outputs, encoder_state, targets,sequence_length, num_decoder_symbols, weights,
                        buckets, softmax_loss_function=None,
@@ -260,7 +260,7 @@ def generate_sequence_output(num_encoder_symbols,
   all_inputs = encoder_outputs + targets + weights
   with ops.op_scope(all_inputs, name, "model_with_buckets"):
     with variable_scope.variable_scope("decoder_sequence_output", reuse=None):
-      logits, attention_weights = attention_RNN(encoder_outputs, 
+      logits, attention_weights = attention_RNN(encoder_outputs,
                                                 encoder_state,
                                                 num_decoder_symbols,
                                                 sequence_length,

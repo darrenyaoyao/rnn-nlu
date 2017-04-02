@@ -5,7 +5,7 @@ Created on Sun Feb 28 17:28:22 2016
 @author: Bing Liu (liubing@cmu.edu)
 
 Multi-task RNN model with an attention mechanism.
-    - Developped on top of the Tensorflow seq2seq_model.py example: 
+    - Developped on top of the Tensorflow seq2seq_model.py example:
       https://github.com/tensorflow/tensorflow/blob/master/tensorflow/models/rnn/translate/seq2seq_model.py
 """
 
@@ -27,10 +27,10 @@ import seq_classification
 import generate_encoder_output
 
 class MultiTaskModel(object):
-  def __init__(self, source_vocab_size, tag_vocab_size, label_vocab_size, buckets, 
-               word_embedding_size, size, num_layers, max_gradient_norm, batch_size, 
+  def __init__(self, source_vocab_size, tag_vocab_size, label_vocab_size, buckets,
+               word_embedding_size, size, num_layers, max_gradient_norm, batch_size,
                dropout_keep_prob=1.0, use_lstm=False, bidirectional_rnn=True,
-               num_samples=1024, use_attention=False, 
+               num_samples=1024, use_attention=False,
                task=None, forward_only=False):
     self.source_vocab_size = source_vocab_size
     self.tag_vocab_size = tag_vocab_size
@@ -43,26 +43,26 @@ class MultiTaskModel(object):
     softmax_loss_function = None
 
     # Create the internal multi-layer cell for our RNN.
-    single_cell = tf.nn.rnn_cell.GRUCell(size)
+    single_cell = tf.contrib.rnn.GRUCell(size)
     if use_lstm:
-      single_cell = tf.nn.rnn_cell.BasicLSTMCell(size)
+      single_cell = tf.contrib.rnn.BasicLSTMCell(size)
     cell = single_cell
     if num_layers > 1:
       cell = tf.nn.rnn_cell.MultiRNNCell([single_cell] * num_layers)
-     
+
     if not forward_only and dropout_keep_prob < 1.0:
-      cell = tf.nn.rnn_cell.DropoutWrapper(cell,
+      cell = tf.contrib.rnn.DropoutWrapper(cell,
                                            input_keep_prob=dropout_keep_prob,
                                            output_keep_prob=dropout_keep_prob)
 
 
     # Feeds for inputs.
     self.encoder_inputs = []
-    self.tags = []    
-    self.tag_weights = []    
-    self.labels = []    
+    self.tags = []
+    self.tag_weights = []
+    self.labels = []
     self.sequence_length = tf.placeholder(tf.int32, [None], name="sequence_length")
-    
+
     for i in xrange(buckets[-1][0]):
       self.encoder_inputs.append(tf.placeholder(tf.int32, shape=[None],
                                                 name="encoder{0}".format(i)))
@@ -81,17 +81,17 @@ class MultiTaskModel(object):
                                                                             sequence_length=self.sequence_length,
                                                                             bidirectional_rnn=bidirectional_rnn)
     encoder_outputs, encoder_state, attention_states = base_rnn_output
-    
+
     if task['tagging'] == 1:
       self.tagging_output, self.tagging_loss = seq_labeling.generate_sequence_output(
-          self.source_vocab_size,       
+          self.source_vocab_size,
           encoder_outputs, encoder_state, self.tags, self.sequence_length, self.tag_vocab_size, self.tag_weights,
           buckets, softmax_loss_function=softmax_loss_function, use_attention=use_attention)
     if task['intent'] == 1:
       self.classification_output, self.classification_loss = seq_classification.generate_single_output(
-          encoder_state, attention_states, self.sequence_length, self.labels, self.label_vocab_size,   
+          encoder_state, attention_states, self.sequence_length, self.labels, self.label_vocab_size,
           buckets, softmax_loss_function=softmax_loss_function, use_attention=use_attention)
-    
+
     if task['tagging'] == 1:
       self.loss = self.tagging_loss
     elif task['intent'] == 1:
@@ -102,14 +102,14 @@ class MultiTaskModel(object):
     if not forward_only:
       opt = tf.train.AdamOptimizer()
       if task['joint'] == 1:
-        # backpropagate the intent and tagging loss, one may further adjust 
+        # backpropagate the intent and tagging loss, one may further adjust
         # the weights for the two costs.
         gradients = tf.gradients([self.tagging_loss, self.classification_loss], params)
       elif task['tagging'] == 1:
         gradients = tf.gradients(self.tagging_loss, params)
       elif task['intent'] == 1:
         gradients = tf.gradients(self.classification_loss, params)
-        
+
       clipped_gradients, norm = tf.clip_by_global_norm(gradients,
                                                        max_gradient_norm)
       self.gradient_norm = norm
@@ -339,7 +339,7 @@ class MultiTaskModel(object):
     for length_idx in xrange(decoder_size):
       batch_decoder_inputs.append(
           np.array([decoder_inputs[batch_idx][length_idx]
-                    for batch_idx in xrange(self.batch_size)], dtype=np.int32))                        
+                    for batch_idx in xrange(self.batch_size)], dtype=np.int32))
       # Create target_weights to be 0 for targets that are padding.
       batch_weight = np.ones(self.batch_size, dtype=np.float32)
       for batch_idx in xrange(self.batch_size):
@@ -351,11 +351,11 @@ class MultiTaskModel(object):
         if decoder_inputs[batch_idx][length_idx] == data_utils.PAD_ID:
           batch_weight[batch_idx] = 0.0
       batch_weights.append(batch_weight)
-    
+
     batch_labels.append(
       np.array([labels[batch_idx][0]
                 for batch_idx in xrange(self.batch_size)], dtype=np.int32))
-                        
+
     batch_sequence_length = np.array(batch_sequence_length_list, dtype=np.int32)
     return batch_encoder_inputs, batch_decoder_inputs, batch_weights, batch_sequence_length, batch_labels
 
@@ -423,10 +423,10 @@ class MultiTaskModel(object):
         if decoder_inputs[batch_idx][length_idx] == data_utils.PAD_ID:
           batch_weight[batch_idx] = 0.0
       batch_weights.append(batch_weight)
-      
+
     batch_labels.append(
       np.array([labels[batch_idx][0]
                 for batch_idx in xrange(1)], dtype=np.int32))
-                    
+
     batch_sequence_length = np.array(batch_sequence_length_list, dtype=np.int32)
     return batch_encoder_inputs, batch_decoder_inputs, batch_weights, batch_sequence_length, batch_labels
