@@ -74,7 +74,7 @@ def attention_single_output_decoder(initial_state,
           s = math_ops.reduce_sum(
               v[i] * math_ops.tanh(hidden_features[i] + y), [2, 3])
           if use_attention is False: # apply mean pooling
-              weights = tf.tile(sequence_length, tf.pack([attn_length]))
+              weights = tf.tile(sequence_length, tf.stack([attn_length]))
               weights = array_ops.reshape(weights, tf.shape(s))
               a = array_ops.ones(tf.shape(s), dtype=dtype) / math_ops.to_float(weights)
               # a = array_ops.ones(tf.shape(s), dtype=dtype) / math_ops.to_float(tf.shape(s)[1])

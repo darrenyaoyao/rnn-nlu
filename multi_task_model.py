@@ -116,7 +116,7 @@ class MultiTaskModel(object):
       self.update = opt.apply_gradients(
           zip(clipped_gradients, params), global_step=self.global_step)
 
-    self.saver = tf.train.Saver(tf.all_variables())
+    self.saver = tf.train.Saver(tf.global_variables())
 
 
   def joint_step(self, session, encoder_inputs, tags, tag_weights, labels, batch_sequence_length,

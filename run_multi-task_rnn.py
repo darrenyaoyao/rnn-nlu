@@ -197,7 +197,7 @@ def create_model(session, source_vocab_size, target_vocab_size, label_vocab_size
     model_train.saver.restore(session, ckpt.model_checkpoint_path)
   else:
     print("Created model with fresh parameters.")
-    session.run(tf.initialize_all_variables())
+    session.run(tf.global_variables_initializer())
   return model_train, model_test
         
 def train():
