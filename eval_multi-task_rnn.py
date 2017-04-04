@@ -111,34 +111,36 @@ def create_model(session, source_vocab_size, target_vocab_size, label_vocab_size
     session.run(tf.global_variables_initializer())
   return model_train, model_test
 
-def eval():
-  print ('Applying Parameters:')
-  for k,v in FLAGS.__dict__['__flags'].iteritems():
-    print ('%s: %s' % (k, str(v)))
-  print("Preparing data in %s" % FLAGS.data_dir)
-  vocab_path = ''
-  tag_vocab_path = ''
-  label_vocab_path = ''
-  in_seq_train, out_seq_train, label_train, in_seq_dev, out_seq_dev, label_dev, in_seq_test, out_seq_test, label_test, vocab_path, tag_vocab_path, label_vocab_path = data_utils.prepare_multi_task_data(
-    FLAGS.data_dir, FLAGS.in_vocab_size, FLAGS.out_vocab_size)
+class Eval():
+  def __init__(self):
+    print ('Applying Parameters:')
+    for k,v in FLAGS.__dict__['__flags'].iteritems():
+      print ('%s: %s' % (k, str(v)))
+    print("Preparing data in %s" % FLAGS.data_dir)
+    vocab_path = ''
+    tag_vocab_path = ''
+    label_vocab_path = ''
+    in_seq_train, out_seq_train, label_train, in_seq_dev, out_seq_dev, label_dev, in_seq_test, out_seq_test, label_test, vocab_path, tag_vocab_path, label_vocab_path = data_utils.prepare_multi_task_data(
+      FLAGS.data_dir, FLAGS.in_vocab_size, FLAGS.out_vocab_size)
 
-  vocab, rev_vocab = data_utils.initialize_vocabulary(vocab_path)
-  tag_vocab, rev_tag_vocab = data_utils.initialize_vocabulary(tag_vocab_path)
-  label_vocab, rev_label_vocab = data_utils.initialize_vocabulary(label_vocab_path)
+    vocab, rev_vocab = data_utils.initialize_vocabulary(vocab_path)
+    tag_vocab, rev_tag_vocab = data_utils.initialize_vocabulary(tag_vocab_path)
+    label_vocab, rev_label_vocab = data_utils.initialize_vocabulary(label_vocab_path)
 
-  with tf.Session() as sess:
-    model, model_test = create_model(sess, len(vocab), len(tag_vocab), len(label_vocab))
+    self.sess = tf.Session()
+    self.model, self.model_test = create_model(self.sess, len(vocab), len(tag_vocab), len(label_vocab))
 
+  def feed_sentence(self, sentence):
     data_set = [[[]]]
-    token_ids = data_utils.prepare_one_data(FLAGS.data_dir, FLAGS.in_vocab_size, 'Who’s the original singer of Blessings')
+    token_ids = data_utils.prepare_one_data(FLAGS.data_dir, FLAGS.in_vocab_size, sentence)
     slot_ids = [0 for i in range(len(token_ids))]
     data_set[0][0].append(token_ids)
     data_set[0][0].append(slot_ids)
     data_set[0][0].append([0])
-    encoder_inputs, tags, tag_weights, sequence_length, labels = model_test.get_one(
+    encoder_inputs, tags, tag_weights, sequence_length, labels = self.model_test.get_one(
                   data_set, 0, 0)
     if task['joint'] == 1:
-      _, _, tagging_logits, classification_logits = model.joint_step(sess, encoder_inputs, tags, tag_weights, labels,
+      _, _, tagging_logits, classification_logits = self.model.joint_step(self.sess, encoder_inputs, tags, tag_weights, labels,
                                                                      sequence_length, 0, False)
 
     classification = [np.argmax(classification_logit) for classification_logit in classification_logits]
@@ -154,12 +156,19 @@ def eval():
           return key
     classification_word = [inverse_lookup(label_vocab, c) for c in classification]
     tagging_word = [inverse_lookup(out_vocab, t) for t in tagging_logit]
-    print("Who’s the original singer of Blessings")
-    print(classification_word)
-    print(tagging_word)
+    return classification_word, tagging_word[:len(sentence.split())]
 
 def main(_):
-  eval()
+  eval = Eval()
+  sys.stdout.write('>')
+  sys.stdout.flush()
+  sentence = sys.stdin.readline()
+  while sentence:
+    print(eval.feed_sentence(sentence))
+    sys.stdout.write('>')
+    sys.stdout.flush()
+    sentence = sys.stdin.readline()
+
 
 if __name__ == "__main__":
   tf.app.run()
