@@ -140,8 +140,22 @@ def eval():
     if task['joint'] == 1:
       _, _, tagging_logits, classification_logits = model.joint_step(sess, encoder_inputs, tags, tag_weights, labels,
                                                                      sequence_length, 0, False)
-    print(classification_logits)
-    print(tagging_logits)
+
+    classification = [np.argmax(classification_logit) for classification_logit in classification_logits]
+    tagging_logit = [np.argmax(tagging_logit) for tagging_logit in tagging_logits]
+
+    out_vocab_path = os.path.join(FLAGS.data_dir, "out_vocab_%d.txt" % FLAGS.out_vocab_size)
+    label_path = os.path.join(FLAGS.data_dir, "label.txt")
+    out_vocab, _ = data_utils.initialize_vocabulary(out_vocab_path)
+    label_vocab, _ = data_utils.initialize_vocabulary(label_path)
+    def inverse_lookup(vocab, id):
+      for key, value in vocab.iteritems():
+        if value == id:
+          return key
+    classification_word = [inverse_lookup(out_vocab, c) for c in classification]
+    tagging_word = [inverse_lookup(label_vocab, t) for t in tagging_logit]
+    print(classification)
+    print(tagging_word)
 
 def main(_):
   eval()
