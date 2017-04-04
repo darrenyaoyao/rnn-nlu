@@ -237,7 +237,7 @@ def sequence_loss(logits, targets, weights,
   Raises:
     ValueError: If len(logits) is different from len(targets) or len(weights).
   """
-  with ops.op_scope(logits + targets + weights, name, "sequence_loss"):
+  with ops.name_scope(logits + targets + weights, name, "sequence_loss"):
     cost = math_ops.reduce_sum(sequence_loss_by_example(
         logits, targets, weights,
         average_across_timesteps=average_across_timesteps,

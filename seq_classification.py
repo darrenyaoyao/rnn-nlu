@@ -109,7 +109,7 @@ def generate_single_output(encoder_state, attention_states, sequence_length, tar
                        use_mean_attention=False,
                        softmax_loss_function=None, per_example_loss=False, name=None, use_attention=False):
   all_inputs = targets
-  with ops.op_scope(all_inputs, name, "model_with_buckets"):
+  with ops.name_scope(all_inputs, name, "model_with_buckets"):
     with variable_scope.variable_scope(variable_scope.get_variable_scope(),
                                        reuse=None):
       bucket_attention_states, bucket_attn_weights, bucket_attns, bucket_outputs = attention_single_output_decoder(
