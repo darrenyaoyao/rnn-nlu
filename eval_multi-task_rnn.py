@@ -53,7 +53,7 @@ tf.app.flags.DEFINE_integer("max_sequence_length", 12,
                             "Max sequence length.")
 tf.app.flags.DEFINE_float("dropout_keep_prob", 0.5,
                           "dropout keep cell input and output prob.")
-tf.app.flags.DEFINE_boolean("bidirectional_rnn", True,
+tf.app.flags.DEFINE_boolean("bidirectional_rnn", False,
                             "Use birectional RNN")
 tf.app.flags.DEFINE_string("task", 'joint', "Options: joint; intent; tagging")
 tf.app.flags.DEFINE_boolean("eval", False, "Evaluation mode")

@@ -2,3 +2,5 @@
 data/
 model_tmp/
 music_model_tmp/
+templates
+joint_nonbirnn

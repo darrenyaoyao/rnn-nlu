@@ -1,6 +1,6 @@
-data_dir=data/ATIS_samples
-model_dir=model_tmp
-max_sequence_length=100  # max length for train/valid/test sequence
+data_dir=data/SEM
+model_dir=joint_nonbirnn
+max_sequence_length=80  # max length for train/valid/test sequence
 task=joint  # available options: intent; tagging; joint
 bidirectional_rnn=False  # available options: True; False
 
