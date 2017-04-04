@@ -130,7 +130,7 @@ class Eval():
     self.sess = tf.Session()
     self.model, self.model_test = create_model(self.sess, len(vocab), len(tag_vocab), len(label_vocab))
 
-  def feed_sentence(self, sentence):
+  def feed_sentence(self, sentence, raw=False):
     data_set = [[[]]]
     token_ids = data_utils.prepare_one_data(FLAGS.data_dir, FLAGS.in_vocab_size, sentence)
     slot_ids = [0 for i in range(len(token_ids))]
@@ -155,8 +155,35 @@ class Eval():
         if value == id:
           return key
     classification_word = [inverse_lookup(label_vocab, c) for c in classification]
-    tagging_word = [inverse_lookup(out_vocab, t) for t in tagging_logit]
-    return classification_word, tagging_word[:len(sentence.split())]
+    tagging_word = [inverse_lookup(out_vocab, t) for t in tagging_logit[:len(sentence.split())]]
+    if raw:
+      return classification_word, tagging_word[:len(sentence.split())]
+    else:
+      sentence = sentence.split()
+      singer_name = ''
+      singer_flag = False
+      song_name = ''
+      song_flag = False
+      album_name = ''
+      album_flag = False
+      for i, word in enumerate(tagging_word):
+        if word == 'B-song':
+          song_flag = True
+        elif word == 'B-singer':
+          singer_flag = True
+        elif word == 'B-album':
+          album_flag = True
+        if song_flag:
+          song_name = song_name + word + ' '
+        elif singer_flag:
+          singer_name = singer_name + word + ' '
+        elif album_flag:
+          album_name = album_name + word + ' '
+        if word == 'O':
+          song_flag = False
+          singer_flag = False
+          album_flag = False
+      return classification_word, [singer_name, song_name, album_name]
 
 def main(_):
   eval = Eval()
@@ -164,7 +191,7 @@ def main(_):
   sys.stdout.flush()
   sentence = sys.stdin.readline()
   while sentence:
-    print(eval.feed_sentence(sentence))
+    print(eval.feed_sentence(sentence, raw=True))
     sys.stdout.write('>')
     sys.stdout.flush()
     sentence = sys.stdin.readline()
