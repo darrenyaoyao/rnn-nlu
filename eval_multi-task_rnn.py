@@ -174,11 +174,11 @@ class Eval():
         elif word == 'B-album':
           album_flag = True
         if song_flag:
-          song_name = song_name + word + ' '
+          song_name = song_name + sentence[i] + ' '
         elif singer_flag:
-          singer_name = singer_name + word + ' '
+          singer_name = singer_name + sentence[i] + ' '
         elif album_flag:
-          album_name = album_name + word + ' '
+          album_name = album_name + sentence[i] + ' '
         if word == 'O':
           song_flag = False
           singer_flag = False
@@ -191,7 +191,7 @@ def main(_):
   sys.stdout.flush()
   sentence = sys.stdin.readline()
   while sentence:
-    print(eval.feed_sentence(sentence, raw=True))
+    print(eval.feed_sentence(sentence))
     sys.stdout.write('>')
     sys.stdout.flush()
     sentence = sys.stdin.readline()
