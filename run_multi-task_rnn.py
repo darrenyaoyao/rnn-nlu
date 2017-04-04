@@ -52,10 +52,11 @@ tf.app.flags.DEFINE_boolean("use_attention", True,
 tf.app.flags.DEFINE_integer("max_sequence_length", 0,
                             "Max sequence length.")
 tf.app.flags.DEFINE_float("dropout_keep_prob", 0.5,
-                          "dropout keep cell input and output prob.")  
+                          "dropout keep cell input and output prob.")
 tf.app.flags.DEFINE_boolean("bidirectional_rnn", True,
                             "Use birectional RNN")
 tf.app.flags.DEFINE_string("task", None, "Options: joint; intent; tagging")
+tf.app.flags.DEFINE_boolean("eval", False, "Evaluation mode")
 FLAGS = tf.app.flags.FLAGS
     
 if FLAGS.max_sequence_length == 0:
@@ -177,7 +178,7 @@ def create_model(session, source_vocab_size, target_vocab_size, label_vocab_size
           source_vocab_size, target_vocab_size, label_vocab_size, _buckets,
           FLAGS.word_embedding_size, FLAGS.size, FLAGS.num_layers, FLAGS.max_gradient_norm, FLAGS.batch_size,
           dropout_keep_prob=FLAGS.dropout_keep_prob, use_lstm=True,
-          forward_only=False, 
+          forward_only=False,
           use_attention=FLAGS.use_attention,
           bidirectional_rnn=FLAGS.bidirectional_rnn,
           task=task)
@@ -186,7 +187,7 @@ def create_model(session, source_vocab_size, target_vocab_size, label_vocab_size
           source_vocab_size, target_vocab_size, label_vocab_size, _buckets,
           FLAGS.word_embedding_size, FLAGS.size, FLAGS.num_layers, FLAGS.max_gradient_norm, FLAGS.batch_size,
           dropout_keep_prob=FLAGS.dropout_keep_prob, use_lstm=True,
-          forward_only=True, 
+          forward_only=True,
           use_attention=FLAGS.use_attention,
           bidirectional_rnn=FLAGS.bidirectional_rnn,
           task=task)
@@ -283,7 +284,7 @@ def train():
         
         def run_valid_test(data_set, mode): # mode: Eval, Test
         # Run evals on development/test set and print the accuracy.
-            word_list = list() 
+            word_list = list()
             ref_tag_list = list() 
             hyp_tag_list = list()
             ref_label_list = list()
