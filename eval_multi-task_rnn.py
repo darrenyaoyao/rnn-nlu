@@ -130,7 +130,7 @@ def eval():
     model, model_test = create_model(sess, len(vocab), len(tag_vocab), len(label_vocab))
 
     data_set = [[[]]]
-    token_ids = data_utils.prepare_one_data(FLAGS.data_dir, FLAGS.in_vocab_size, 'Hi, I want to listen Darren Huang songs.')
+    token_ids = data_utils.prepare_one_data(FLAGS.data_dir, FLAGS.in_vocab_size, 'Who’s the original singer of Blessings')
     slot_ids = [0 for i in range(len(token_ids))]
     data_set[0][0].append(token_ids)
     data_set[0][0].append(slot_ids)
@@ -152,9 +152,10 @@ def eval():
       for key, value in vocab.iteritems():
         if value == id:
           return key
-    classification_word = [inverse_lookup(out_vocab, c) for c in classification]
-    tagging_word = [inverse_lookup(label_vocab, t) for t in tagging_logit]
-    print(classification)
+    classification_word = [inverse_lookup(label_vocab, c) for c in classification]
+    tagging_word = [inverse_lookup(out_vocab, t) for t in tagging_logit]
+    print("Who’s the original singer of Blessings")
+    print(classification_word)
     print(tagging_word)
 
 def main(_):
