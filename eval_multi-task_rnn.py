@@ -49,7 +49,7 @@ tf.app.flags.DEFINE_integer("max_test_data_size", 0,
                             "Max size of test set.")
 tf.app.flags.DEFINE_boolean("use_attention", True,
                             "Use attention based RNN")
-tf.app.flags.DEFINE_integer("max_sequence_length", 12,
+tf.app.flags.DEFINE_integer("max_sequence_length", 20,
                             "Max sequence length.")
 tf.app.flags.DEFINE_float("dropout_keep_prob", 0.5,
                           "dropout keep cell input and output prob.")

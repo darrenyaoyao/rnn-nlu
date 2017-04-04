@@ -1,6 +1,6 @@
-data_dir=data/SEM
-model_dir=joint_nonbirnn
-max_sequence_length=80  # max length for train/valid/test sequence
+data_dir=data/fake_data
+model_dir=music_model_tmp
+max_sequence_length=20  # max length for train/valid/test sequence
 task=joint  # available options: intent; tagging; joint
 bidirectional_rnn=False  # available options: True; False
 
