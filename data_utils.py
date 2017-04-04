@@ -45,7 +45,7 @@ def basic_tokenizer(sentence):
 
 def naive_tokenizer(sentence):
   """Naive tokenizer: split the sentence by space into a list of tokens."""
-  return sentence.split()  
+  return sentence.split()
 
 
 def create_vocabulary(vocabulary_path, data_path, max_vocabulary_size,
@@ -205,16 +205,16 @@ def prepare_multi_task_data(data_dir, in_vocab_size, out_vocab_size):
     train_path = data_dir + '/train/train'
     dev_path = data_dir + '/valid/valid'
     test_path = data_dir + '/test/test'
-    
+
     # Create vocabularies of the appropriate sizes.
     in_vocab_path = os.path.join(data_dir, "in_vocab_%d.txt" % in_vocab_size)
     out_vocab_path = os.path.join(data_dir, "out_vocab_%d.txt" % out_vocab_size)
     label_path = os.path.join(data_dir, "label.txt")
-    
+
     create_vocabulary(in_vocab_path, train_path + ".seq.in", in_vocab_size, tokenizer=naive_tokenizer)
     create_vocabulary(out_vocab_path, train_path + ".seq.out", out_vocab_size, tokenizer=naive_tokenizer)
     create_label_vocab(label_path, train_path + ".label")
-    
+
     # Create token ids for the training data.
     in_seq_train_ids_path = train_path + (".ids%d.seq.in" % in_vocab_size)
     out_seq_train_ids_path = train_path + (".ids%d.seq.out" % out_vocab_size)
@@ -223,7 +223,7 @@ def prepare_multi_task_data(data_dir, in_vocab_size, out_vocab_size):
     data_to_token_ids(train_path + ".seq.in", in_seq_train_ids_path, in_vocab_path, tokenizer=naive_tokenizer)
     data_to_token_ids(train_path + ".seq.out", out_seq_train_ids_path, out_vocab_path, tokenizer=naive_tokenizer)
     data_to_token_ids(train_path + ".label", label_train_ids_path, label_path, normalize_digits=False, use_padding=False)
-    
+
     # Create token ids for the development data.
     in_seq_dev_ids_path = dev_path + (".ids%d.seq.in" % in_vocab_size)
     out_seq_dev_ids_path = dev_path + (".ids%d.seq.out" % out_vocab_size)
@@ -232,16 +232,16 @@ def prepare_multi_task_data(data_dir, in_vocab_size, out_vocab_size):
     data_to_token_ids(dev_path + ".seq.in", in_seq_dev_ids_path, in_vocab_path, tokenizer=naive_tokenizer)
     data_to_token_ids(dev_path + ".seq.out", out_seq_dev_ids_path, out_vocab_path, tokenizer=naive_tokenizer)
     data_to_token_ids(dev_path + ".label", label_dev_ids_path, label_path, normalize_digits=False, use_padding=False)
-    
+
     # Create token ids for the test data.
     in_seq_test_ids_path = test_path + (".ids%d.seq.in" % in_vocab_size)
     out_seq_test_ids_path = test_path + (".ids%d.seq.out" % out_vocab_size)
     label_test_ids_path = test_path + (".ids.label")
-    
+
     data_to_token_ids(test_path + ".seq.in", in_seq_test_ids_path, in_vocab_path, tokenizer=naive_tokenizer)
     data_to_token_ids(test_path + ".seq.out", out_seq_test_ids_path, out_vocab_path, tokenizer=naive_tokenizer)
     data_to_token_ids(test_path + ".label", label_test_ids_path, label_path, normalize_digits=False, use_padding=False)
-    
+
     return (in_seq_train_ids_path, out_seq_train_ids_path, label_train_ids_path,
           in_seq_dev_ids_path, out_seq_dev_ids_path, label_dev_ids_path,
           in_seq_test_ids_path, out_seq_test_ids_path, label_test_ids_path,
@@ -249,7 +249,7 @@ def prepare_multi_task_data(data_dir, in_vocab_size, out_vocab_size):
 
 def prepare_one_data(data_dir, in_vocab_size, sentence):
     in_vocab_path = os.path.join(data_dir, "in_vocab_%d.txt" % in_vocab_size)
-    vocab, _ = initialize_vocabulary(vocabulary_path)
+    vocab, _ = initialize_vocabulary(in_vocab_path)
     UNK_ID = UNK_ID_dict['with_padding']
     token_ids = sentence_to_token_ids(sentence, vocab, UNK_ID, naive_tokenizer, True)
     return token_ids
