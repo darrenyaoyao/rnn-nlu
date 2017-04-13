@@ -5,7 +5,7 @@ Tensorflow implementation of attention-based LSTM models for sequence classifica
 
 **Setup**
 
-* Tensorflow, version >= r0.9 (https://www.tensorflow.org/versions/r0.9/get_started/index.html)
+* Tensorflow, version >= 1.0 
 
 **Usage**:
 ```bash
