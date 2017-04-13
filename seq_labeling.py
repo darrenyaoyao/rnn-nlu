@@ -22,6 +22,7 @@ from tensorflow.python.ops import nn_ops
 from tensorflow.contrib.rnn.python.ops import core_rnn_cell_impl as rnn_cell
 from tensorflow.python.ops import variable_scope
 from tensorflow.python.framework import tensor_shape
+import tensorflow as tf
 
 def _step(time, sequence_length, min_sequence_length, max_sequence_length, zero_logit, generate_logit):
   # Step 1: determine whether we need to call_cell or not
@@ -37,7 +38,7 @@ def _step(time, sequence_length, min_sequence_length, max_sequence_length, zero_
     # the previous state & zero output, and which values should get
     # a calculated state & output.
     copy_cond = (time >= sequence_length)
-    return math_ops.select(copy_cond, zero_logit, logit)
+    return tf.where(copy_cond, zero_logit, logit)
 
   logit = control_flow_ops.cond(
       time < min_sequence_length, existing_logit, copy_through)
@@ -147,7 +148,7 @@ def attention_RNN(encoder_outputs,
         sequence_length = math_ops.to_int32(sequence_length)
       if sequence_length is not None:  # Prepare variables
         zero_logit = array_ops.zeros(
-            array_ops.pack([batch_size, num_decoder_symbols]), encoder_outputs[0].dtype)
+            array_ops.stack([batch_size, num_decoder_symbols]), encoder_outputs[0].dtype)
         zero_logit.set_shape(
             tensor_shape.TensorShape([fixed_batch_size.value, num_decoder_symbols]))
         min_sequence_length = math_ops.reduce_min(sequence_length)

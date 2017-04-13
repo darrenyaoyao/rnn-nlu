@@ -4,3 +4,12 @@ model_tmp/
 music_model_tmp/
 templates
 joint_nonbirnn
+birnn_joint_model/
+birnn_joint_model_without_attention/
+birnn_intent_model/
+birnn_tagging_model/
+rnn_intent_model/
+rnn_joint_model_without_attention/
+rnn_joint_model/
+rnn_tagging_model/
+run.sh

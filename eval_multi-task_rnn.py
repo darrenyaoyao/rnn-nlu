@@ -140,8 +140,8 @@ class Eval():
     encoder_inputs, tags, tag_weights, sequence_length, labels = self.model_test.get_one(
                   data_set, 0, 0)
     if task['joint'] == 1:
-      _, _, tagging_logits, classification_logits = self.model.joint_step(self.sess, encoder_inputs, tags, tag_weights, labels,
-                                                                     sequence_length, 0, False)
+      _, _, tagging_logits, classification_logits = self.model_test.joint_step(self.sess, encoder_inputs, tags, tag_weights, labels,
+                                                                     sequence_length, 0, True)
 
     classification = [np.argmax(classification_logit) for classification_logit in classification_logits]
     tagging_logit = [np.argmax(tagging_logit) for tagging_logit in tagging_logits]
