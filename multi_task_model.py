@@ -88,7 +88,7 @@ class MultiTaskModel(object):
           encoder_outputs, encoder_state, self.tags, self.sequence_length, self.tag_vocab_size, self.tag_weights,
           buckets, softmax_loss_function=softmax_loss_function, use_attention=use_attention)
     if task['intent'] == 1:
-      self.classification_output, self.classification_loss = seq_classification.generate_single_output(
+      self.classification_output, self.classification_loss, self.attention_weight = seq_classification.generate_single_output(
           encoder_state, attention_states, self.sequence_length, self.labels, self.label_vocab_size,
           buckets, softmax_loss_function=softmax_loss_function, use_attention=use_attention)
 
@@ -166,7 +166,8 @@ class MultiTaskModel(object):
     if not forward_only:
       output_feed = [self.update,  # Update Op that does SGD.
                      self.gradient_norm,  # Gradient norm.
-                     self.loss] # Loss for this batch.
+                     self.loss,  # Loss for this batch.
+                     self.attention_weight] # attention weight for this batch.
       for i in range(tag_size):
         output_feed.append(self.tagging_output[i])
       output_feed.append(self.classification_output[0])
@@ -177,6 +178,7 @@ class MultiTaskModel(object):
       output_feed.append(self.classification_output[0])
 
     outputs = session.run(output_feed, input_feed)
+    print(outputs[3])
     if not forward_only:
       return outputs[1], outputs[2], outputs[3:3+tag_size], outputs[-1]
     else:

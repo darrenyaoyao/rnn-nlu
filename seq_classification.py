@@ -132,4 +132,4 @@ def generate_single_output(encoder_state, attention_states, sequence_length, tar
       batch_size = array_ops.shape(targets[0])[0]
       loss = tf.reduce_sum(crossent) / math_ops.cast(batch_size, dtypes.float32)
 
-  return bucket_outputs, loss
+  return bucket_outputs, loss, bucket_attn_weights
