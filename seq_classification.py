@@ -82,6 +82,7 @@ def attention_single_output_decoder(initial_state,
             a = nn_ops.softmax(s)
           attn_weights.append(a)
           # Now calculate the attention-weighted vector d.
+          print(hidden)
           d = math_ops.reduce_sum(
               array_ops.reshape(a, [-1, attn_length, 1, 1]) * hidden,
               [1, 2])

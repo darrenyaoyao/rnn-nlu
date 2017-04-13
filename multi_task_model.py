@@ -83,7 +83,7 @@ class MultiTaskModel(object):
     encoder_outputs, encoder_state, attention_states = base_rnn_output
 
     if task['tagging'] == 1:
-      self.tagging_output, self.tagging_loss = seq_labeling.generate_sequence_output(
+      self.tagging_output, self.tagging_loss, self.attention_weights = seq_labeling.generate_sequence_output(
           self.source_vocab_size,
           encoder_outputs, encoder_state, self.tags, self.sequence_length, self.tag_vocab_size, self.tag_weights,
           buckets, softmax_loss_function=softmax_loss_function, use_attention=use_attention)
@@ -166,8 +166,7 @@ class MultiTaskModel(object):
     if not forward_only:
       output_feed = [self.update,  # Update Op that does SGD.
                      self.gradient_norm,  # Gradient norm.
-                     self.loss,  # Loss for this batch.
-                     self.attention_weight] # attention weight for this batch.
+                     self.loss]  # Loss for this batch.
       for i in range(tag_size):
         output_feed.append(self.tagging_output[i])
       output_feed.append(self.classification_output[0])
@@ -176,9 +175,7 @@ class MultiTaskModel(object):
       for i in range(tag_size):
         output_feed.append(self.tagging_output[i])
       output_feed.append(self.classification_output[0])
-
     outputs = session.run(output_feed, input_feed)
-    print(outputs[3])
     if not forward_only:
       return outputs[1], outputs[2], outputs[3:3+tag_size], outputs[-1]
     else:

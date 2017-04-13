@@ -289,6 +289,7 @@ def train():
             hyp_tag_list = list()
             ref_label_list = list()
             hyp_label_list = list()
+            all_correct_count = 0
             correct_count = 0
             accuracy = 0.0
             tagging_eval_result = dict()
@@ -320,10 +321,19 @@ def train():
                     correct_count += 1
                 if task['tagging'] == 1:
                   word_list.append([rev_vocab[x[0]] for x in encoder_inputs[:sequence_length[0]]])
-                  ref_tag_list.append([rev_tag_vocab[x[0]] for x in tags[:sequence_length[0]]])
-                  hyp_tag_list.append([rev_tag_vocab[np.argmax(x)] for x in tagging_logits[:sequence_length[0]]])
+                  ref_tag = [rev_tag_vocab[x[0]] for x in tags[:sequence_length[0]]]
+                  ref_tag_list.append(ref_tag)
+                  hyp_tag = [rev_tag_vocab[np.argmax(x)] for x in tagging_logits[:sequence_length[0]]]
+                  hyp_tag_list.append(hyp_tag)
+                  tag_same = True
+                  for n in range(len(ref_tag)):
+                    if ref_tag[n] != hyp_tag[n]:
+                      tag_same = False
+                  if labels[0] == hyp_label and tag_same:
+                      all_correct_count += 1
 
             accuracy = float(correct_count)*100/count
+            print("All same: "+str(float(all_correct_count)*100/count)+" "+str(all_correct_count)+"/"+str(count))
             if task['intent'] == 1:
               print("  %s accuracy: %.2f %d/%d" % (mode, accuracy, correct_count, count))
               sys.stdout.flush()
@@ -347,6 +357,7 @@ def train():
         test_accuracy, test_tagging_result = run_valid_test(test_set, 'Test')
         if task['tagging'] == 1 and test_tagging_result['f1'] > best_test_score:
           best_test_score = test_tagging_result['f1']
+          print(best_test_score)
           # save the best output file
           subprocess.call(['mv', current_taging_test_out_file, current_taging_test_out_file + '.best_f1_%.2f' % best_test_score])
 

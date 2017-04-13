@@ -13,3 +13,4 @@ rnn_joint_model_without_attention/
 rnn_joint_model/
 rnn_tagging_model/
 run.sh
+eval_rnn.sh

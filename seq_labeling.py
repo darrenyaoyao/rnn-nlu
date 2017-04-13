@@ -166,7 +166,7 @@ def attention_RNN(encoder_outputs,
         else:
           logit = generate_logit
         attention_encoder_outputs.append(logit)
-
+  print(len(sequence_attention_weights))
   return attention_encoder_outputs, sequence_attention_weights
 
 
@@ -280,4 +280,4 @@ def generate_sequence_output(num_encoder_symbols,
               logits, bucket_target, weights,
               softmax_loss_function=softmax_loss_function)
 
-  return logits, crossent
+  return logits, crossent, attention_weights
